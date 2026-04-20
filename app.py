@@ -4,7 +4,7 @@ import requests
 
 # Your OpenWeatherMap API key
 # You can get one from https://openweathermap.org/api
-API_KEY = "YOUR_API_KEY" 
+API_KEY = "ae3e4299e25cce18847613a8653fe9a8" 
 BASE_URL = "http://api.openweathermap.org/data/2.5/weather"
 
 st.title("Weather Report App")
