@@ -117,25 +117,22 @@ def admin_dashboard():
     st.divider()
 
     # -----------------------
-    # SHOW LINKS
+    # SHOW LINKS (FIXED)
     # -----------------------
     st.subheader("🔗 Generated Links")
 
     if os.path.exists(LINKS_FILE):
         df = pd.read_csv(LINKS_FILE)
 
-        base_url = st.request.url.split("?")[0]
-
         for i, row in df.iterrows():
             st.write(f"**Test:** {row['test_id']} | ⏱️ {row['time_limit']} min")
-
-            full_link = base_url + row["link"]
 
             col1, col2 = st.columns([4, 1])
 
             with col1:
-                st.markdown(f"[👉 Open Test]({full_link})")
-                st.code(full_link)
+                # ✅ FIXED: no st.request
+                st.markdown(f"[👉 Open Test]({row['link']})")
+                st.code(row["link"])
 
             with col2:
                 if st.button("❌", key=f"del_{i}"):
@@ -184,7 +181,7 @@ def exam_page(test_id, time_limit):
 
     questions = load_test(test_id)
 
-    # Initialize state
+    # Initialize
     if "q_index" not in st.session_state:
         st.session_state.q_index = 0
         st.session_state.score = 0
@@ -218,11 +215,7 @@ def exam_page(test_id, time_limit):
             st.header(f"Question {idx + 1}")
             st.write(q["question"])
 
-            ans = st.radio(
-                "Select your answer:",
-                q["options"],
-                key=f"q_{idx}"
-            )
+            ans = st.radio("Select your answer:", q["options"], key=f"q_{idx}")
 
             st.warning("⚠️ Do not refresh during exam")
 
@@ -247,7 +240,6 @@ def exam_page(test_id, time_limit):
 
         st.subheader(f"Score: {st.session_state.score}/{len(questions)}")
 
-        # Save once
         if "result_saved" not in st.session_state:
             save_result(
                 st.session_state.email,
@@ -284,12 +276,12 @@ def exam_page(test_id, time_limit):
 
 
 # -----------------------
-# MAIN ROUTER
+# MAIN
 # -----------------------
 def main():
     params = st.query_params
 
-    # ADMIN
+    # Admin
     if "admin" in params:
         if "admin_logged_in" not in st.session_state:
             st.session_state.admin_logged_in = False
@@ -300,7 +292,7 @@ def main():
             admin_login()
         return
 
-    # TEST
+    # Test
     if "test" in params:
         test_id = params["test"]
         time_limit = int(params.get("time", 10))
@@ -311,9 +303,8 @@ def main():
             exam_page(test_id, time_limit)
         return
 
-    # HOME
+    # Home
     st.title("🏠 Welcome to Exam App")
-    st.write("Use links below:")
     st.code("?admin=true  → Admin Login")
     st.code("?test=ai102&time=10 → Start Test")
 
