@@ -110,7 +110,6 @@ def admin_dashboard():
         if test_name:
             link = f"?test={test_name}&time={time_limit}"
             save_link(test_name, time_limit)
-
             st.success("Link generated and saved!")
             st.code(link)
 
@@ -144,10 +143,29 @@ def admin_dashboard():
     st.divider()
 
     # -----------------------
-    # RESULTS + CLEAR BUTTON
+    # RESULTS + CONTROLS
     # -----------------------
     st.subheader("📊 Results")
 
+    colA, colB = st.columns([1, 1])
+
+    with colA:
+        if st.button("🔄 Refresh Results"):
+            st.rerun()
+
+    with colB:
+        if os.path.exists(RESULT_FILE):
+            df = pd.read_csv(RESULT_FILE)
+            st.download_button(
+                label="📥 Download CSV",
+                data=df.to_csv(index=False),
+                file_name="results.csv",
+                mime="text/csv"
+            )
+        else:
+            st.warning("No results to download")
+
+    # Show results
     if os.path.exists(RESULT_FILE):
         df = pd.read_csv(RESULT_FILE)
         st.dataframe(df)
@@ -208,14 +226,12 @@ def exam_page(test_id, time_limit):
 
     questions = load_test(test_id)
 
-    # Initialize
     if "q_index" not in st.session_state:
         st.session_state.q_index = 0
         st.session_state.score = 0
         st.session_state.answers = {}
         st.session_state.exam_finished = False
 
-    # Timer
     if "start_time" not in st.session_state:
         st.session_state.start_time = time.time()
 
@@ -304,7 +320,6 @@ def exam_page(test_id, time_limit):
 def main():
     params = st.query_params
 
-    # ADMIN
     if "admin" in params:
         if "admin_logged_in" not in st.session_state:
             st.session_state.admin_logged_in = False
@@ -315,7 +330,6 @@ def main():
             admin_login()
         return
 
-    # TEST
     if "test" in params:
         test_id = params["test"]
         time_limit = int(params.get("time", 10))
@@ -326,7 +340,6 @@ def main():
             exam_page(test_id, time_limit)
         return
 
-    # HOME
     st.title("🏠 Welcome to Exam App")
     st.code("?admin=true  → Admin Login")
     st.code("?test=ai102&time=10 → Start Test")
