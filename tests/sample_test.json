@@ -1,0 +1,12 @@
+[
+    {
+        "question": "2 + 2 = ?",
+        "options": ["3", "4", "5"],
+        "correct_answer": "4"
+    },
+    {
+        "question": "Capital of India?",
+        "options": ["Mumbai", "Delhi", "Pune"],
+        "correct_answer": "Delhi"
+    }
+]
