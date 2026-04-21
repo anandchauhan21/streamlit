@@ -1,126 +1,155 @@
 import streamlit as st
+import pandas as pd
+import json
+import os
+from datetime import datetime
 
-# --- Dummy user database ---
-USERS = {
-    "admin": "1234",
-    "user": "pass"
-}
+RESULT_FILE = "results.xlsx"
 
-# --- Authentication function ---
-def login():
-    st.title("🔐 Login")
+# -----------------------
+# UTIL FUNCTIONS
+# -----------------------
 
-    username = st.text_input("Username")
-    password = st.text_input("Password", type="password")
+def save_result(email, test_id, score, total):
+    data = {
+        "email": email,
+        "test_id": test_id,
+        "score": score,
+        "total": total,
+        "timestamp": datetime.now()
+    }
 
-    if st.button("Login"):
-        if username in USERS and USERS[username] == password:
+    df = pd.DataFrame([data])
+
+    if os.path.exists(RESULT_FILE):
+        df_existing = pd.read_excel(RESULT_FILE)
+        df = pd.concat([df_existing, df], ignore_index=True)
+
+    df.to_excel(RESULT_FILE, index=False)
+
+
+def load_test(test_id):
+    with open(f"tests/{test_id}.json", "r") as f:
+        return json.load(f)
+
+
+# -----------------------
+# ADMIN DASHBOARD
+# -----------------------
+
+def admin_dashboard():
+    st.title("👨‍💼 Admin Dashboard")
+
+    test_name = st.text_input("Test ID (example: math1)")
+
+    if st.button("Generate Test Link"):
+        if test_name:
+            link = f"?test={test_name}"
+            st.success("Share this link with students:")
+            st.code(link)
+
+    # Show results
+    if os.path.exists(RESULT_FILE):
+        st.subheader("📊 Results")
+        df = pd.read_excel(RESULT_FILE)
+        st.dataframe(df)
+
+
+# -----------------------
+# STUDENT LOGIN
+# -----------------------
+
+def student_login():
+    st.title("🎓 Student Login")
+
+    email = st.text_input("Enter your email")
+
+    if st.button("Start Test"):
+        if email:
+            st.session_state.email = email
             st.session_state.logged_in = True
-            st.session_state.username = username
             st.rerun()
-        else:
-            st.error("Invalid username or password")
 
-# --- Exam App ---
-def exam_app():
-    st.title("🧠 Exam Conductor App")
-    st.write(f"Welcome, **{st.session_state.username}** 👋")
 
-    # --- Logout ---
-    if st.button("Logout"):
-        for key in list(st.session_state.keys()):
-            del st.session_state[key]
-        st.rerun()
+# -----------------------
+# EXAM
+# -----------------------
 
-    # --- Questions ---
-    questions = [
-        {
-            "question": "What is the capital of France?",
-            "options": ["Berlin", "Madrid", "Paris", "Rome"],
-            "correct_answer": "Paris"
-        },
-        {
-            "question": "Which planet is known as the Red Planet?",
-            "options": ["Earth", "Mars", "Jupiter", "Venus"],
-            "correct_answer": "Mars"
-        },
-        {
-            "question": "What is 2 + 2?",
-            "options": ["3", "4", "5", "6"],
-            "correct_answer": "4"
-        }
-    ]
+def exam_page(test_id):
+    st.title(f"🧠 Test: {test_id}")
+    st.write(f"Logged in as: **{st.session_state.email}**")
 
-    # --- Initialize state ---
-    if 'current_question_index' not in st.session_state:
-        st.session_state.current_question_index = 0
-        st.session_state.answers = {}
+    questions = load_test(test_id)
+
+    if "q_index" not in st.session_state:
+        st.session_state.q_index = 0
         st.session_state.score = 0
-        st.session_state.exam_finished = False
+        st.session_state.answers = {}
 
-    # --- Exam Flow ---
-    if not st.session_state.exam_finished:
-        idx = st.session_state.current_question_index
+    idx = st.session_state.q_index
 
-        if idx < len(questions):
-            q = questions[idx]
+    if idx < len(questions):
+        q = questions[idx]
 
-            st.header(f"Question {idx + 1}")
-            st.write(q["question"])
+        st.write(f"### Q{idx + 1}: {q['question']}")
 
-            selected = st.radio(
-                "Select your answer:",
-                q["options"],
-                key=f"q_{idx}"
-            )
+        ans = st.radio("Select:", q["options"], key=f"q{idx}")
 
-            if st.button("Submit Answer"):
-                st.session_state.answers[idx] = selected
+        if st.button("Submit"):
+            st.session_state.answers[idx] = ans
 
-                if selected == q["correct_answer"]:
-                    st.session_state.score += 1
+            if ans == q["correct_answer"]:
+                st.session_state.score += 1
 
-                st.session_state.current_question_index += 1
-                st.rerun()
-        else:
-            st.session_state.exam_finished = True
+            st.session_state.q_index += 1
             st.rerun()
 
     else:
-        st.header("Exam Finished!")
-        st.subheader(
-            f"Score: {st.session_state.score} / {len(questions)}"
+        st.success("✅ Test Finished!")
+
+        save_result(
+            st.session_state.email,
+            test_id,
+            st.session_state.score,
+            len(questions)
         )
 
-        for i, q in enumerate(questions):
-            user_ans = st.session_state.answers.get(i, "Not Answered")
+        st.write(f"Score: {st.session_state.score}/{len(questions)}")
 
-            st.write(f"**Q{i + 1}:** {q['question']}")
-            st.write(f"Correct: {q['correct_answer']}")
-            st.write(f"Your answer: {user_ans}")
-
-            if user_ans == q["correct_answer"]:
-                st.success("Correct")
-            else:
-                st.error("Wrong")
-
-        if st.button("Retake Exam"):
-            keys_to_keep = ["logged_in", "username"]
-            for key in list(st.session_state.keys()):
-                if key not in keys_to_keep:
-                    del st.session_state[key]
+        if st.button("Exit"):
+            for k in list(st.session_state.keys()):
+                del st.session_state[k]
             st.rerun()
 
 
-# --- Main ---
-def main():
-    if "logged_in" not in st.session_state:
-        st.session_state.logged_in = False
+# -----------------------
+# MAIN ROUTER
+# -----------------------
 
-    if st.session_state.logged_in:
-        exam_app()
-    else:
-        login()
+def main():
+    params = st.query_params
+
+    # If admin mode
+    if "admin" in params:
+        admin_dashboard()
+        return
+
+    # If test link
+    if "test" in params:
+        test_id = params["test"]
+
+        if "logged_in" not in st.session_state:
+            student_login()
+        else:
+            exam_page(test_id)
+
+        return
+
+    # Default screen
+    st.title("🏠 Welcome")
+    st.write("Use:")
+    st.code("?admin=true  → Admin Dashboard")
+    st.code("?test=math1 → Student Test")
 
 
 if __name__ == "__main__":
