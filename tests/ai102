@@ -1,0 +1,152 @@
+[
+  {
+    "question": "What does AI stand for?",
+    "options": ["Artificial Intelligence", "Automated Input", "Advanced Internet", "Analog Interface"],
+    "correct_answer": "Artificial Intelligence"
+  },
+  {
+    "question": "Which language is most commonly used in AI?",
+    "options": ["Python", "HTML", "CSS", "SQL"],
+    "correct_answer": "Python"
+  },
+  {
+    "question": "Which of the following is a subset of AI?",
+    "options": ["Machine Learning", "Web Development", "Networking", "Cyber Security"],
+    "correct_answer": "Machine Learning"
+  },
+  {
+    "question": "What is Machine Learning?",
+    "options": ["Learning by machines automatically", "Manual programming", "Database management", "UI design"],
+    "correct_answer": "Learning by machines automatically"
+  },
+  {
+    "question": "Which algorithm is used for classification?",
+    "options": ["Logistic Regression", "K-Means", "Apriori", "PCA"],
+    "correct_answer": "Logistic Regression"
+  },
+  {
+    "question": "Which type of learning uses labeled data?",
+    "options": ["Supervised Learning", "Unsupervised Learning", "Reinforcement Learning", "Deep Learning"],
+    "correct_answer": "Supervised Learning"
+  },
+  {
+    "question": "Which type of learning uses unlabeled data?",
+    "options": ["Unsupervised Learning", "Supervised Learning", "Reinforcement Learning", "Deep Learning"],
+    "correct_answer": "Unsupervised Learning"
+  },
+  {
+    "question": "What is Deep Learning?",
+    "options": ["Subset of ML using neural networks", "Database design", "Web framework", "OS concept"],
+    "correct_answer": "Subset of ML using neural networks"
+  },
+  {
+    "question": "Which is a neural network framework?",
+    "options": ["TensorFlow", "Bootstrap", "Django", "Flask"],
+    "correct_answer": "TensorFlow"
+  },
+  {
+    "question": "What is NLP?",
+    "options": ["Natural Language Processing", "Network Layer Protocol", "Node Level Programming", "None"],
+    "correct_answer": "Natural Language Processing"
+  },
+  {
+    "question": "Which AI is used in chatbots?",
+    "options": ["NLP", "Computer Vision", "Robotics", "IoT"],
+    "correct_answer": "NLP"
+  },
+  {
+    "question": "Which field deals with image recognition?",
+    "options": ["Computer Vision", "NLP", "Data Mining", "Cloud Computing"],
+    "correct_answer": "Computer Vision"
+  },
+  {
+    "question": "Which is an example of AI?",
+    "options": ["Self-driving car", "Calculator", "Fan", "Light bulb"],
+    "correct_answer": "Self-driving car"
+  },
+  {
+    "question": "Which company developed TensorFlow?",
+    "options": ["Google", "Microsoft", "Amazon", "Facebook"],
+    "correct_answer": "Google"
+  },
+  {
+    "question": "Which company developed PyTorch?",
+    "options": ["Facebook", "Google", "Amazon", "IBM"],
+    "correct_answer": "Facebook"
+  },
+  {
+    "question": "What is data used in AI?",
+    "options": ["Training models", "Cooking", "Painting", "Driving"],
+    "correct_answer": "Training models"
+  },
+  {
+    "question": "Which is NOT a type of AI?",
+    "options": ["Reactive Machines", "Limited Memory", "Self-aware AI", "Manual AI"],
+    "correct_answer": "Manual AI"
+  },
+  {
+    "question": "What is reinforcement learning?",
+    "options": ["Learning by reward and punishment", "Learning by reading", "Learning manually", "None"],
+    "correct_answer": "Learning by reward and punishment"
+  },
+  {
+    "question": "Which is used for clustering?",
+    "options": ["K-Means", "Linear Regression", "Decision Tree", "SVM"],
+    "correct_answer": "K-Means"
+  },
+  {
+    "question": "What is overfitting?",
+    "options": ["Model performs well on training but not test", "Good performance always", "Under learning", "None"],
+    "correct_answer": "Model performs well on training but not test"
+  },
+  {
+    "question": "What is underfitting?",
+    "options": ["Model too simple", "Model too complex", "Perfect model", "None"],
+    "correct_answer": "Model too simple"
+  },
+  {
+    "question": "Which metric is used for classification?",
+    "options": ["Accuracy", "MSE", "RMSE", "MAE"],
+    "correct_answer": "Accuracy"
+  },
+  {
+    "question": "Which is used for regression?",
+    "options": ["Linear Regression", "KNN", "SVM Classifier", "Naive Bayes"],
+    "correct_answer": "Linear Regression"
+  },
+  {
+    "question": "Which library is used for AI in Python?",
+    "options": ["Scikit-learn", "NumPy", "Pandas", "All of these"],
+    "correct_answer": "All of these"
+  },
+  {
+    "question": "What is dataset?",
+    "options": ["Collection of data", "Single value", "Code", "Algorithm"],
+    "correct_answer": "Collection of data"
+  },
+  {
+    "question": "What is model training?",
+    "options": ["Teaching model using data", "Writing code", "Deploying app", "Testing UI"],
+    "correct_answer": "Teaching model using data"
+  },
+  {
+    "question": "What is prediction?",
+    "options": ["Output from model", "Input data", "Training data", "None"],
+    "correct_answer": "Output from model"
+  },
+  {
+    "question": "Which is example of NLP?",
+    "options": ["ChatGPT", "Camera", "Sensor", "Motor"],
+    "correct_answer": "ChatGPT"
+  },
+  {
+    "question": "What is AI goal?",
+    "options": ["Make machines intelligent", "Replace humans", "Build hardware", "Store data"],
+    "correct_answer": "Make machines intelligent"
+  },
+  {
+    "question": "Which is AI application?",
+    "options": ["Recommendation system", "Typing", "Printing", "Scanning"],
+    "correct_answer": "Recommendation system"
+  }
+]
