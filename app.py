@@ -4,7 +4,13 @@ import json
 import os
 from datetime import datetime
 
+# -----------------------
+# CONFIG
+# -----------------------
 RESULT_FILE = "results.csv"
+
+ADMIN_USERNAME = "admin"
+ADMIN_PASSWORD = "1234"
 
 # -----------------------
 # SAVE RESULT
@@ -42,10 +48,33 @@ def load_test(test_id):
 
 
 # -----------------------
+# ADMIN LOGIN
+# -----------------------
+def admin_login():
+    st.title("🔐 Admin Login")
+
+    username = st.text_input("Username")
+    password = st.text_input("Password", type="password")
+
+    if st.button("Login"):
+        if username == ADMIN_USERNAME and password == ADMIN_PASSWORD:
+            st.session_state.admin_logged_in = True
+            st.rerun()
+        else:
+            st.error("Invalid credentials")
+
+
+# -----------------------
 # ADMIN DASHBOARD
 # -----------------------
 def admin_dashboard():
     st.title("👨‍💼 Admin Dashboard")
+
+    # Logout
+    if st.button("🚪 Logout"):
+        for key in list(st.session_state.keys()):
+            del st.session_state[key]
+        st.rerun()
 
     st.subheader("Generate Test Link")
 
@@ -59,7 +88,7 @@ def admin_dashboard():
 
     st.divider()
 
-    # Show results
+    # Results
     if os.path.exists(RESULT_FILE):
         st.subheader("📊 Results")
         df = pd.read_csv(RESULT_FILE)
@@ -94,7 +123,7 @@ def exam_page(test_id):
 
     questions = load_test(test_id)
 
-    # Initialize state
+    # Initialize
     if "q_index" not in st.session_state:
         st.session_state.q_index = 0
         st.session_state.score = 0
@@ -103,9 +132,9 @@ def exam_page(test_id):
 
     idx = st.session_state.q_index
 
-    # =====================
+    # -----------------------
     # DURING EXAM
-    # =====================
+    # -----------------------
     if not st.session_state.exam_finished:
 
         if idx < len(questions):
@@ -135,9 +164,9 @@ def exam_page(test_id):
             st.session_state.exam_finished = True
             st.rerun()
 
-    # =====================
+    # -----------------------
     # AFTER EXAM
-    # =====================
+    # -----------------------
     else:
         st.success("🎉 Exam Finished!")
 
@@ -145,7 +174,7 @@ def exam_page(test_id):
             f"Score: {st.session_state.score}/{len(questions)}"
         )
 
-        # Save result once
+        # Save once
         if "result_saved" not in st.session_state:
             save_result(
                 st.session_state.email,
@@ -155,8 +184,8 @@ def exam_page(test_id):
             )
             st.session_state.result_saved = True
 
-        # Show answers
         st.write("### Review Answers")
+
         for i, q in enumerate(questions):
             user_ans = st.session_state.answers.get(i, "Not Answered")
 
@@ -169,7 +198,6 @@ def exam_page(test_id):
             else:
                 st.error("Wrong")
 
-        # Buttons AFTER exam only
         col1, col2 = st.columns(2)
 
         with col1:
@@ -193,12 +221,18 @@ def exam_page(test_id):
 def main():
     params = st.query_params
 
-    # Admin route
+    # ADMIN (protected)
     if "admin" in params:
-        admin_dashboard()
+        if "admin_logged_in" not in st.session_state:
+            st.session_state.admin_logged_in = False
+
+        if st.session_state.admin_logged_in:
+            admin_dashboard()
+        else:
+            admin_login()
         return
 
-    # Test route
+    # TEST
     if "test" in params:
         test_id = params["test"]
 
@@ -209,11 +243,11 @@ def main():
 
         return
 
-    # Home
+    # HOME
     st.title("🏠 Welcome to Exam App")
-    st.write("Use links below:")
 
-    st.code("?admin=true  → Admin Dashboard")
+    st.write("Use links below:")
+    st.code("?admin=true  → Admin Login")
     st.code("?test=ai101 → Student Test")
 
 
