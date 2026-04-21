@@ -1,0 +1,12 @@
+[
+    {
+        "question": "What is AI?",
+        "options": ["Artificial Intelligence", "Auto Input", "Advanced Internet"],
+        "correct_answer": "Artificial Intelligence"
+    },
+    {
+        "question": "Which language is used in AI?",
+        "options": ["Python", "HTML", "CSS"],
+        "correct_answer": "Python"
+    }
+]
