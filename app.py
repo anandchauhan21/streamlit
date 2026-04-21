@@ -1,10 +1,38 @@
 import streamlit as st
 
-def main():
-    st.set_page_config(page_title="Exam Conductor", layout="centered")
-    st.title("🧠 Exam Conductor App")
+# --- Dummy user database ---
+USERS = {
+    "admin": "1234",
+    "user": "pass"
+}
 
-    # --- Exam Questions ---
+# --- Authentication function ---
+def login():
+    st.title("🔐 Login")
+
+    username = st.text_input("Username")
+    password = st.text_input("Password", type="password")
+
+    if st.button("Login"):
+        if username in USERS and USERS[username] == password:
+            st.session_state.logged_in = True
+            st.session_state.username = username
+            st.rerun()
+        else:
+            st.error("Invalid username or password")
+
+# --- Exam App ---
+def exam_app():
+    st.title("🧠 Exam Conductor App")
+    st.write(f"Welcome, **{st.session_state.username}** 👋")
+
+    # --- Logout ---
+    if st.button("Logout"):
+        for key in list(st.session_state.keys()):
+            del st.session_state[key]
+        st.rerun()
+
+    # --- Questions ---
     questions = [
         {
             "question": "What is the capital of France?",
@@ -23,7 +51,7 @@ def main():
         }
     ]
 
-    # --- Initialize session state ---
+    # --- Initialize state ---
     if 'current_question_index' not in st.session_state:
         st.session_state.current_question_index = 0
         st.session_state.answers = {}
@@ -32,59 +60,67 @@ def main():
 
     # --- Exam Flow ---
     if not st.session_state.exam_finished:
-        current_index = st.session_state.current_question_index
+        idx = st.session_state.current_question_index
 
-        if current_index < len(questions):
-            question_data = questions[current_index]
+        if idx < len(questions):
+            q = questions[idx]
 
-            st.header(f"Question {current_index + 1}")
-            st.write(question_data["question"])
+            st.header(f"Question {idx + 1}")
+            st.write(q["question"])
 
-            selected_option = st.radio(
+            selected = st.radio(
                 "Select your answer:",
-                question_data["options"],
-                key=f"q_{current_index}"
+                q["options"],
+                key=f"q_{idx}"
             )
 
-            if st.button("Submit Answer", key=f"submit_{current_index}"):
-                st.session_state.answers[current_index] = selected_option
+            if st.button("Submit Answer"):
+                st.session_state.answers[idx] = selected
 
-                if selected_option == question_data['correct_answer']:
+                if selected == q["correct_answer"]:
                     st.session_state.score += 1
 
                 st.session_state.current_question_index += 1
-                st.rerun()   # ✅ FIXED
-
+                st.rerun()
         else:
             st.session_state.exam_finished = True
-            st.rerun()   # ✅ FIXED
+            st.rerun()
 
-    # --- Result Page ---
     else:
         st.header("Exam Finished!")
         st.subheader(
-            f"Your final score: {st.session_state.score} out of {len(questions)}"
+            f"Score: {st.session_state.score} / {len(questions)}"
         )
 
-        st.write("### Your Answers:")
+        for i, q in enumerate(questions):
+            user_ans = st.session_state.answers.get(i, "Not Answered")
 
-        for i, q_data in enumerate(questions):
-            st.write(f"**Question {i + 1}:** {q_data['question']}")
-            st.write(f"Correct Answer: {q_data['correct_answer']}")
+            st.write(f"**Q{i + 1}:** {q['question']}")
+            st.write(f"Correct: {q['correct_answer']}")
+            st.write(f"Your answer: {user_ans}")
 
-            user_answer = st.session_state.answers.get(i, "Not Answered")
-            st.write(f"Your Answer: {user_answer}")
-
-            if user_answer == q_data['correct_answer']:
-                st.success("Correct!")
+            if user_ans == q["correct_answer"]:
+                st.success("Correct")
             else:
-                st.error("Incorrect.")
+                st.error("Wrong")
 
-        # --- Retake Button ---
         if st.button("Retake Exam"):
+            keys_to_keep = ["logged_in", "username"]
             for key in list(st.session_state.keys()):
-                del st.session_state[key]
-            st.rerun()   # ✅ FIXED
+                if key not in keys_to_keep:
+                    del st.session_state[key]
+            st.rerun()
+
+
+# --- Main ---
+def main():
+    if "logged_in" not in st.session_state:
+        st.session_state.logged_in = False
+
+    if st.session_state.logged_in:
+        exam_app()
+    else:
+        login()
 
 
 if __name__ == "__main__":
