@@ -9,6 +9,7 @@ from datetime import datetime
 # CONFIG
 # -----------------------
 RESULT_FILE = "results.csv"
+LINKS_FILE = "links.csv"
 
 ADMIN_USERNAME = "admin"
 ADMIN_PASSWORD = "1234"
@@ -28,10 +29,30 @@ def save_result(email, test_id, score, total):
     df = pd.DataFrame([data])
 
     if os.path.exists(RESULT_FILE):
-        df_existing = pd.read_csv(RESULT_FILE)
-        df = pd.concat([df_existing, df], ignore_index=True)
+        old = pd.read_csv(RESULT_FILE)
+        df = pd.concat([old, df], ignore_index=True)
 
     df.to_csv(RESULT_FILE, index=False)
+
+
+# -----------------------
+# SAVE LINK
+# -----------------------
+def save_link(test_id, time_limit):
+    data = {
+        "test_id": test_id,
+        "time_limit": time_limit,
+        "link": f"?test={test_id}&time={time_limit}",
+        "created_at": datetime.now()
+    }
+
+    df = pd.DataFrame([data])
+
+    if os.path.exists(LINKS_FILE):
+        old = pd.read_csv(LINKS_FILE)
+        df = pd.concat([old, df], ignore_index=True)
+
+    df.to_csv(LINKS_FILE, index=False)
 
 
 # -----------------------
@@ -77,20 +98,58 @@ def admin_dashboard():
             del st.session_state[key]
         st.rerun()
 
+    # -----------------------
+    # GENERATE LINK
+    # -----------------------
     st.subheader("Generate Test Link")
 
     test_name = st.text_input("Enter Test ID (example: ai102)")
-    time_limit = st.number_input("Set Timer (minutes)", min_value=1, max_value=180, value=10)
+    time_limit = st.number_input("Set Timer (minutes)", 1, 180, 10)
 
-    if st.button("Generate Link"):
+    if st.button("Generate & Save Link"):
         if test_name:
             link = f"?test={test_name}&time={time_limit}"
-            st.success("Share this link with students:")
+            save_link(test_name, time_limit)
+
+            st.success("Link generated and saved!")
             st.code(link)
 
     st.divider()
 
-    # Results
+    # -----------------------
+    # SHOW LINKS
+    # -----------------------
+    st.subheader("🔗 Generated Links")
+
+    if os.path.exists(LINKS_FILE):
+        df = pd.read_csv(LINKS_FILE)
+
+        base_url = st.request.url.split("?")[0]
+
+        for i, row in df.iterrows():
+            st.write(f"**Test:** {row['test_id']} | ⏱️ {row['time_limit']} min")
+
+            full_link = base_url + row["link"]
+
+            col1, col2 = st.columns([4, 1])
+
+            with col1:
+                st.markdown(f"[👉 Open Test]({full_link})")
+                st.code(full_link)
+
+            with col2:
+                if st.button("❌", key=f"del_{i}"):
+                    df = df.drop(i)
+                    df.to_csv(LINKS_FILE, index=False)
+                    st.rerun()
+    else:
+        st.info("No links generated yet.")
+
+    st.divider()
+
+    # -----------------------
+    # RESULTS
+    # -----------------------
     if os.path.exists(RESULT_FILE):
         st.subheader("📊 Results")
         df = pd.read_csv(RESULT_FILE)
@@ -117,7 +176,7 @@ def student_login():
 
 
 # -----------------------
-# EXAM PAGE WITH TIMER
+# EXAM PAGE
 # -----------------------
 def exam_page(test_id, time_limit):
     st.title(f"🧠 Test: {test_id}")
@@ -132,18 +191,16 @@ def exam_page(test_id, time_limit):
         st.session_state.answers = {}
         st.session_state.exam_finished = False
 
-    # Timer start
+    # Timer
     if "start_time" not in st.session_state:
         st.session_state.start_time = time.time()
 
     elapsed = time.time() - st.session_state.start_time
     remaining = int(time_limit * 60 - elapsed)
 
-    # Time up
     if remaining <= 0:
         st.session_state.exam_finished = True
 
-    # Display timer
     mins = max(remaining, 0) // 60
     secs = max(remaining, 0) % 60
     st.markdown(f"### ⏳ Time Left: {mins:02d}:{secs:02d}")
