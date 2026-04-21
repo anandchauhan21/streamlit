@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import json
 import os
+import time
 from datetime import datetime
 
 # -----------------------
@@ -78,11 +79,12 @@ def admin_dashboard():
 
     st.subheader("Generate Test Link")
 
-    test_name = st.text_input("Enter Test ID (example: ai101)")
+    test_name = st.text_input("Enter Test ID (example: ai102)")
+    time_limit = st.number_input("Set Timer (minutes)", min_value=1, max_value=180, value=10)
 
     if st.button("Generate Link"):
         if test_name:
-            link = f"?test={test_name}"
+            link = f"?test={test_name}&time={time_limit}"
             st.success("Share this link with students:")
             st.code(link)
 
@@ -115,20 +117,36 @@ def student_login():
 
 
 # -----------------------
-# EXAM PAGE
+# EXAM PAGE WITH TIMER
 # -----------------------
-def exam_page(test_id):
+def exam_page(test_id, time_limit):
     st.title(f"🧠 Test: {test_id}")
     st.write(f"Logged in as: **{st.session_state.email}**")
 
     questions = load_test(test_id)
 
-    # Initialize
+    # Initialize state
     if "q_index" not in st.session_state:
         st.session_state.q_index = 0
         st.session_state.score = 0
         st.session_state.answers = {}
         st.session_state.exam_finished = False
+
+    # Timer start
+    if "start_time" not in st.session_state:
+        st.session_state.start_time = time.time()
+
+    elapsed = time.time() - st.session_state.start_time
+    remaining = int(time_limit * 60 - elapsed)
+
+    # Time up
+    if remaining <= 0:
+        st.session_state.exam_finished = True
+
+    # Display timer
+    mins = max(remaining, 0) // 60
+    secs = max(remaining, 0) % 60
+    st.markdown(f"### ⏳ Time Left: {mins:02d}:{secs:02d}")
 
     idx = st.session_state.q_index
 
@@ -168,11 +186,9 @@ def exam_page(test_id):
     # AFTER EXAM
     # -----------------------
     else:
-        st.success("🎉 Exam Finished!")
+        st.success("⏱️ Time Up! / Exam Finished")
 
-        st.subheader(
-            f"Score: {st.session_state.score}/{len(questions)}"
-        )
+        st.subheader(f"Score: {st.session_state.score}/{len(questions)}")
 
         # Save once
         if "result_saved" not in st.session_state:
@@ -192,11 +208,6 @@ def exam_page(test_id):
             st.write(f"**Q{i + 1}:** {q['question']}")
             st.write(f"Correct: {q['correct_answer']}")
             st.write(f"Your answer: {user_ans}")
-
-            if user_ans == q["correct_answer"]:
-                st.success("Correct")
-            else:
-                st.error("Wrong")
 
         col1, col2 = st.columns(2)
 
@@ -221,7 +232,7 @@ def exam_page(test_id):
 def main():
     params = st.query_params
 
-    # ADMIN (protected)
+    # ADMIN
     if "admin" in params:
         if "admin_logged_in" not in st.session_state:
             st.session_state.admin_logged_in = False
@@ -235,20 +246,19 @@ def main():
     # TEST
     if "test" in params:
         test_id = params["test"]
+        time_limit = int(params.get("time", 10))
 
         if "logged_in" not in st.session_state:
             student_login()
         else:
-            exam_page(test_id)
-
+            exam_page(test_id, time_limit)
         return
 
     # HOME
     st.title("🏠 Welcome to Exam App")
-
     st.write("Use links below:")
     st.code("?admin=true  → Admin Login")
-    st.code("?test=ai101 → Student Test")
+    st.code("?test=ai102&time=10 → Start Test")
 
 
 if __name__ == "__main__":
