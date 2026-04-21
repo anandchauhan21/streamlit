@@ -45,9 +45,9 @@ def main():
 
             if st.button("Submit Answer", key=f"submit_{current_index}"):
                 st.session_state.answers[current_index] = selected_option
-                if selected_option == question_data["correct_answer"]:
+                if selected_option == question_data['correct_answer']:
                     st.session_state.score += 1
-                
+
                 st.session_state.current_question_index += 1
                 # Rerun the app to show the next question
                 st.experimental_rerun()
@@ -59,7 +59,7 @@ def main():
         st.subheader(f"Your final score: {st.session_state.score} out of {len(questions)}")
         st.write("### Your Answers:")
         for i, q_data in enumerate(questions):
-            st.write(f"**Question {i + 1}:** {q_data['question']}")
+            st.write(f"**Question {i + 2}:** {q_data['question']}")
             st.write(f"Correct Answer: {q_data['correct_answer']}")
             user_answer = st.session_state.answers.get(i, "Not Answered")
             st.write(f"Your Answer: {user_answer}")
@@ -67,7 +67,7 @@ def main():
                 st.success("Correct!")
             else:
                 st.error("Incorrect.")
-        
+
         if st.button("Retake Exam"):
             del st.session_state.current_question_index
             del st.session_state.answers
