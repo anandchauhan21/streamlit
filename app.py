@@ -117,7 +117,7 @@ def admin_dashboard():
     st.divider()
 
     # -----------------------
-    # SHOW LINKS (FIXED)
+    # SHOW LINKS
     # -----------------------
     st.subheader("🔗 Generated Links")
 
@@ -130,7 +130,6 @@ def admin_dashboard():
             col1, col2 = st.columns([4, 1])
 
             with col1:
-                # ✅ FIXED: no st.request
                 st.markdown(f"[👉 Open Test]({row['link']})")
                 st.code(row["link"])
 
@@ -145,12 +144,40 @@ def admin_dashboard():
     st.divider()
 
     # -----------------------
-    # RESULTS
+    # RESULTS + CLEAR BUTTON
     # -----------------------
+    st.subheader("📊 Results")
+
     if os.path.exists(RESULT_FILE):
-        st.subheader("📊 Results")
         df = pd.read_csv(RESULT_FILE)
         st.dataframe(df)
+
+        st.divider()
+        st.subheader("⚠️ Danger Zone")
+
+        if "confirm_delete" not in st.session_state:
+            st.session_state.confirm_delete = False
+
+        if not st.session_state.confirm_delete:
+            if st.button("🗑️ Clear All Results"):
+                st.session_state.confirm_delete = True
+                st.rerun()
+        else:
+            st.warning("Are you sure? This will delete ALL results permanently.")
+
+            col1, col2 = st.columns(2)
+
+            with col1:
+                if st.button("✅ Yes, Delete"):
+                    os.remove(RESULT_FILE)
+                    st.success("All results deleted!")
+                    st.session_state.confirm_delete = False
+                    st.rerun()
+
+            with col2:
+                if st.button("❌ Cancel"):
+                    st.session_state.confirm_delete = False
+                    st.rerun()
     else:
         st.info("No results yet.")
 
@@ -204,9 +231,7 @@ def exam_page(test_id, time_limit):
 
     idx = st.session_state.q_index
 
-    # -----------------------
     # DURING EXAM
-    # -----------------------
     if not st.session_state.exam_finished:
 
         if idx < len(questions):
@@ -232,9 +257,7 @@ def exam_page(test_id, time_limit):
             st.session_state.exam_finished = True
             st.rerun()
 
-    # -----------------------
     # AFTER EXAM
-    # -----------------------
     else:
         st.success("⏱️ Time Up! / Exam Finished")
 
@@ -281,7 +304,7 @@ def exam_page(test_id, time_limit):
 def main():
     params = st.query_params
 
-    # Admin
+    # ADMIN
     if "admin" in params:
         if "admin_logged_in" not in st.session_state:
             st.session_state.admin_logged_in = False
@@ -292,7 +315,7 @@ def main():
             admin_login()
         return
 
-    # Test
+    # TEST
     if "test" in params:
         test_id = params["test"]
         time_limit = int(params.get("time", 10))
@@ -303,7 +326,7 @@ def main():
             exam_page(test_id, time_limit)
         return
 
-    # Home
+    # HOME
     st.title("🏠 Welcome to Exam App")
     st.code("?admin=true  → Admin Login")
     st.code("?test=ai102&time=10 → Start Test")
